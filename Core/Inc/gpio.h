@@ -39,7 +39,8 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void gpio_set(char *port, char *pin, uint8_t value);
+uint8_t gpio_get(char *port, char *pin);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

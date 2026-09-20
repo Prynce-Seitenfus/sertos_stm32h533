@@ -62,5 +62,22 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+static GPIO_TypeDef *gpio_ports[] = {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH};
+static uint16_t gpio_pins[] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7,
+								GPIO_PIN_8, GPIO_PIN_9, GPIO_PIN_10, GPIO_PIN_11, GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15};
+void gpio_set(char *port, char *pin, uint8_t value)
+{
+    GPIO_TypeDef *gpio_port = gpio_ports[port[0] - 'A'];
+    uint8_t idx = pin[1] ? ((pin[0] - '0') * 10 + (pin[1] - '0')) : (pin[0] - '0');
+	uint16_t gpio_pin = gpio_pins[idx];
+    HAL_GPIO_WritePin(gpio_port, gpio_pin, value ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
 
+uint8_t gpio_get(char *port, char *pin)
+{
+    GPIO_TypeDef *gpio_port = gpio_ports[port[0] - 'A'];
+    uint8_t idx = pin[1] ? ((pin[0] - '0') * 10 + (pin[1] - '0')) : (pin[0] - '0');
+uint16_t gpio_pin = gpio_pins[idx];
+    return (HAL_GPIO_ReadPin(gpio_port, gpio_pin) == GPIO_PIN_SET) ? 1U : 0U;
+}
 /* USER CODE END 2 */

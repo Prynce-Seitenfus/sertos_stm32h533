@@ -37,19 +37,37 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
+# Configure the local path to the parent SertOS repository
+set(SERTOS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../sertos" CACHE PATH "Path to the SertOS root directory")
+set(SERTOS_LIB_NAME "libsertos_cortex_m33.a")
+set(SERTOS_LIB_PATH "${SERTOS_DIR}/lib/arm/${SERTOS_LIB_NAME}" CACHE FILEPATH "Path to the pre-compiled SertOS Cortex-M33 library")
+
+if(NOT EXISTS "${SERTOS_LIB_PATH}")
+    message(FATAL_ERROR "Pre-compiled SertOS library not found at '${SERTOS_LIB_PATH}'. Build the Cortex-M33 target in '${SERTOS_DIR}' first.")
+endif()
+
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined library search paths
+    "${SERTOS_DIR}/lib/arm"
 )
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user sources here
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_stm32h533.c"
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined include paths
+    "${CMAKE_CURRENT_SOURCE_DIR}/app"
+    "${SERTOS_DIR}/inc"
+    "${SERTOS_DIR}/port"
+    "${SERTOS_DIR}/modules/ring_buffer"
+    "${SERTOS_DIR}/modules/linked_list"
+    "${SERTOS_DIR}/modules/bitmap"
+    "${SERTOS_DIR}/modules/atomic"
+    "${SERTOS_DIR}/modules/memory_pool"
+    "${SERTOS_DIR}/modules/crc"
+    "${SERTOS_DIR}/modules/fsm"
 )
 
 # Add project symbols (macros)
@@ -63,6 +81,5 @@ list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-
-    # Add user defined libraries
+    "${SERTOS_LIB_PATH}"
 )
