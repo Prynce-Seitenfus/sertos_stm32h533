@@ -41,9 +41,14 @@ add_subdirectory(cmake/stm32cubemx)
 set(SERTOS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../sertos" CACHE PATH "Path to the SertOS root directory")
 set(SERTOS_LIB_NAME "libsertos_cortex_m33.a")
 set(SERTOS_LIB_PATH "${SERTOS_DIR}/lib/arm/${SERTOS_LIB_NAME}" CACHE FILEPATH "Path to the pre-compiled SertOS Cortex-M33 library")
+set(PROFILER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/modules/profiler")
 
 if(NOT EXISTS "${SERTOS_LIB_PATH}")
     message(FATAL_ERROR "Pre-compiled SertOS library not found at '${SERTOS_LIB_PATH}'. Build the Cortex-M33 target in '${SERTOS_DIR}' first.")
+endif()
+
+if(NOT EXISTS "${PROFILER_DIR}/profiler.c")
+    message(FATAL_ERROR "Profiler module not found at '${PROFILER_DIR}'. Initialize the project submodules with 'git submodule update --init --recursive'.")
 endif()
 
 # Link directories setup
@@ -53,12 +58,18 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_stm32h533.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_demo_queue.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/profiler_port.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_producer.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_consumer.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_profiler.c"
+    "${PROFILER_DIR}/profiler.c"
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/app"
+    "${PROFILER_DIR}"
     "${SERTOS_DIR}/inc"
     "${SERTOS_DIR}/port"
     "${SERTOS_DIR}/modules/ring_buffer"
@@ -82,4 +93,13 @@ list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
     "${SERTOS_LIB_PATH}"
+)
+
+# Instrument files for function call tracing
+set_source_files_properties(
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_demo_queue.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_producer.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_consumer.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_profiler.c"
+    PROPERTIES COMPILE_OPTIONS "-finstrument-functions"
 )

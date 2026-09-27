@@ -1,0 +1,4 @@
+[submodule "modules/profiler"]
+	path = modules/profiler
+	url = https://github.com/Prynce-Seitenfus/profiler.git
+	branch = main

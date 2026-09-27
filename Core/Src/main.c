@@ -18,11 +18,20 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "gpdma.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sertos_stm32h533.h"
+#include <stdint.h>
+
+#include "sertos_demo_queue.h"
+#include "sertos_scheduler.h"
+#include "sertos_task.h"
+#include "sertos_task_consumer.h"
+#include "sertos_task_profiler.h"
+#include "sertos_task_producer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,7 +41,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define SERTOS_DEMO_STACK_BYTES (256U)
+#define SERTOS_PROF_STACK_BYTES (2048U)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,7 +53,19 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+static uint8_t s_producer_stack[SERTOS_DEMO_STACK_BYTES]
+    __attribute__((aligned(SERTOS_STACK_ALIGNMENT_BYTES)));
+static uint8_t s_consumer_stack[SERTOS_DEMO_STACK_BYTES]
+    __attribute__((aligned(SERTOS_STACK_ALIGNMENT_BYTES)));
+static uint8_t s_profiler_stack[SERTOS_PROF_STACK_BYTES]
+    __attribute__((aligned(SERTOS_STACK_ALIGNMENT_BYTES)));
+static SertosTaskControlBlock s_producer_tcb;
+static SertosTaskControlBlock s_consumer_tcb;
+static SertosTaskControlBlock s_profiler_tcb;
+static SertosTaskHandle s_producer_handle;
+static SertosTaskHandle s_consumer_handle;
+static SertosTaskHandle s_profiler_handle;
+static SertosDemoQueue* s_demo_queue;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,7 +76,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -86,8 +107,79 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_GPDMA1_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  sertos_init();
+    SertosStatus status;
+    SertosTaskConfig producer_config;
+    SertosTaskConfig consumer_config;
+    SertosTaskConfig profiler_config;
+
+    sertos_task_profiler_init();
+
+    status = sertos_scheduler_init();
+    if (status != SERTOS_STATUS_OK) {
+        Error_Handler();
+        return 0;
+    }
+
+    status = sertos_demo_queue_init(&s_demo_queue);
+    if (status != SERTOS_STATUS_OK) {
+        Error_Handler();
+        return 0;
+    }
+
+    producer_config.name = "sertos_task_producer";
+    producer_config.entry_func = sertos_task_producer;
+    producer_config.param = s_demo_queue;
+    producer_config.priority = 3U;
+    producer_config.stack_buffer = s_producer_stack;
+    producer_config.stack_size = sizeof(s_producer_stack);
+
+    status = sertos_task_create_static(&producer_config,
+                                       &s_producer_tcb,
+                                       &s_producer_handle);
+    if (status != SERTOS_STATUS_OK) {
+        Error_Handler();
+        return 0;
+    }
+
+    consumer_config.name = "sertos_task_consumer";
+    consumer_config.entry_func = sertos_task_consumer;
+    consumer_config.param = s_demo_queue;
+    consumer_config.priority = 2U;
+    consumer_config.stack_buffer = s_consumer_stack;
+    consumer_config.stack_size = sizeof(s_consumer_stack);
+
+    status = sertos_task_create_static(&consumer_config,
+                                       &s_consumer_tcb,
+                                       &s_consumer_handle);
+    if (status != SERTOS_STATUS_OK) {
+        Error_Handler();
+        return 0;
+    }
+
+    profiler_config.name = "sertos_task_profiler";
+    profiler_config.entry_func = sertos_task_profiler;
+    profiler_config.param = NULL;
+    profiler_config.priority = 1U;
+    profiler_config.stack_buffer = s_profiler_stack;
+    profiler_config.stack_size = sizeof(s_profiler_stack);
+
+    status = sertos_task_create_static(&profiler_config,
+                                       &s_profiler_tcb,
+                                       &s_profiler_handle);
+    if (status != SERTOS_STATUS_OK) {
+        Error_Handler();
+        return 0;
+    }
+
+    if (!sertos_task_profiler_start_uart_receive()) {
+        Error_Handler();
+        return 0;
+    }
+
+    sertos_scheduler_start();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -151,7 +243,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**
