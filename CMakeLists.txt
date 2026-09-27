@@ -60,6 +60,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_demo_queue.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/app/profiler_port.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_port.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_producer.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_consumer.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_profiler.c"
