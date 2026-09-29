@@ -59,6 +59,8 @@ static uint8_t s_consumer_stack[SERTOS_DEMO_STACK_BYTES]
     __attribute__((aligned(SERTOS_STACK_ALIGNMENT_BYTES)));
 static uint8_t s_profiler_stack[SERTOS_PROF_STACK_BYTES]
     __attribute__((aligned(SERTOS_STACK_ALIGNMENT_BYTES)));
+static uint8_t s_idle_task_stack[SERTOS_CONFIG_IDLE_TASK_STACK_SIZE]
+    __attribute__((aligned(SERTOS_STACK_ALIGNMENT_BYTES)));
 static SertosTaskControlBlock s_producer_tcb;
 static SertosTaskControlBlock s_consumer_tcb;
 static SertosTaskControlBlock s_profiler_tcb;
@@ -115,9 +117,18 @@ int main(void)
     SertosTaskConfig consumer_config;
     SertosTaskConfig profiler_config;
 
+    SertosConfig sertos_cfg = {
+        .tick_rate_hz = 1000U,
+        .enable_time_slicing = true,
+        .idle_task_stack = s_idle_task_stack,
+        .idle_task_stack_size = sizeof(s_idle_task_stack),
+        .tick_hook = NULL,
+        .idle_hook = NULL
+    };
+
     sertos_task_profiler_init();
 
-    status = sertos_scheduler_init();
+    status = sertos_scheduler_init_with_config(&sertos_cfg);
     if (status != SERTOS_STATUS_OK) {
         Error_Handler();
         return 0;
