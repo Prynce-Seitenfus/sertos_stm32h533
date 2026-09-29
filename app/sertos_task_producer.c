@@ -37,6 +37,6 @@ void sertos_task_producer(void* param)
             (void)sertos_demo_queue_send(queue, &item, SERTOS_NO_WAIT);
         }
 
-        (void)sertos_scheduler_delay(10U);
+        (void)sertos_scheduler_delay_ms(10U);
     }
 }
