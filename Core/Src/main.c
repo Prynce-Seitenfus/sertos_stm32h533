@@ -26,9 +26,8 @@
 /* USER CODE BEGIN Includes */
 #include <stdint.h>
 
+#include "sertos.h"
 #include "sertos_demo_queue.h"
-#include "sertos_scheduler.h"
-#include "sertos_task.h"
 #include "sertos_task_consumer.h"
 #include "sertos_task_profiler.h"
 #include "sertos_task_producer.h"
