@@ -1,0 +1,5 @@
+{
+    "cmake.sourceDirectory": "C:/github/sertos_stm32h533",
+    "C_Cpp.intelliSenseEngine": "default",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+}
