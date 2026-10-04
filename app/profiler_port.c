@@ -1,4 +1,5 @@
 #include "profiler_port.h"
+
 #include "stm32h533xx.h"
 
 void profiler_port_init(void)
@@ -10,5 +11,17 @@ void profiler_port_init(void)
 
 uint32_t profiler_port_ticks(void)
 {
-    return (uint32_t)DWT->CYCCNT;
+    return DWT->CYCCNT;
+}
+
+uint32_t profiler_port_enter_critical(void)
+{
+    uint32_t state = __get_PRIMASK();
+    __disable_irq();
+    return state;
+}
+
+void profiler_port_exit_critical(uint32_t state)
+{
+    __set_PRIMASK(state);
 }

@@ -184,11 +184,6 @@ int main(void)
         return 0;
     }
 
-    if (!sertos_task_profiler_start_uart_receive()) {
-        Error_Handler();
-        return 0;
-    }
-
     sertos_scheduler_start();
   /* USER CODE END 2 */
 
