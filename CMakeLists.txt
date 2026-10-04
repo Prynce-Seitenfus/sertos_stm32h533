@@ -42,6 +42,7 @@ set(SERTOS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../sertos" CACHE PATH "Path to the S
 set(SERTOS_LIB_NAME "libsertos_cortex_m33.a")
 set(SERTOS_LIB_PATH "${SERTOS_DIR}/lib/arm/${SERTOS_LIB_NAME}" CACHE FILEPATH "Path to the pre-compiled SertOS Cortex-M33 library")
 set(PROFILER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/modules/profiler")
+set(STREAM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/modules/stream")
 
 if(NOT EXISTS "${SERTOS_LIB_PATH}")
     message(FATAL_ERROR "Pre-compiled SertOS library not found at '${SERTOS_LIB_PATH}'. Build the Cortex-M33 target in '${SERTOS_DIR}' first.")
@@ -49,6 +50,10 @@ endif()
 
 if(NOT EXISTS "${PROFILER_DIR}/profiler.c")
     message(FATAL_ERROR "Profiler module not found at '${PROFILER_DIR}'. Initialize the project submodules with 'git submodule update --init --recursive'.")
+endif()
+
+if(NOT EXISTS "${STREAM_DIR}/stream.c")
+    message(FATAL_ERROR "Stream module not found at '${STREAM_DIR}'. Initialize project submodules with 'git submodule update --init --recursive'.")
 endif()
 
 # Link directories setup
@@ -65,12 +70,14 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_consumer.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_profiler.c"
     "${PROFILER_DIR}/profiler.c"
+    "${STREAM_DIR}/stream.c"
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/app"
     "${PROFILER_DIR}"
+    "${STREAM_DIR}"
     "${SERTOS_DIR}/inc"
     "${SERTOS_DIR}/port"
     "${SERTOS_DIR}/modules/ring_buffer"
@@ -103,4 +110,11 @@ set_source_files_properties(
     "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_consumer.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/app/sertos_task_profiler.c"
     PROPERTIES COMPILE_OPTIONS "-finstrument-functions"
+)
+
+set_source_files_properties(
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/profiler_port.c"
+    "${PROFILER_DIR}/profiler.c"
+    "${STREAM_DIR}/stream.c"
+    PROPERTIES COMPILE_OPTIONS "-fno-instrument-functions"
 )
