@@ -1,5 +1,7 @@
 {
     "cmake.sourceDirectory": "C:/github/sertos_stm32h533",
+    "cmake.cmakePath": "C:/ST/STM32CubeCLT_1.21.0/CMake/bin/cmake.exe",
+    "cmake.useCMakePresets": "always",
     "C_Cpp.intelliSenseEngine": "default",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }
